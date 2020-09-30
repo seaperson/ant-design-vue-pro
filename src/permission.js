@@ -29,6 +29,12 @@ router.beforeEach((to, from, next) => {
         store
           .dispatch('GetInfo')
           .then(res => {
+            // token失效或错误,退出登录
+            if (res.code && res.code === 401) {
+            store.dispatch('Logout').then(() => {
+              next({ path: loginRoutePath, query: { redirect: to.fullPath } })
+            })
+          }
             const roles = res.result && res.result.role
             // generate dynamic router
             store.dispatch('GenerateRoutes', { roles }).then(() => {
@@ -46,7 +52,8 @@ router.beforeEach((to, from, next) => {
               }
             })
           })
-          .catch(() => {
+          .catch((err) => {
+            console.log(err)
             notification.error({
               message: '错误',
               description: '请求用户信息失败，请重试'

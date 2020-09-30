@@ -39,7 +39,7 @@ function hasRole(roles, route) {
 
 function filterAsyncRouter (routerMap, roles) {
   const accessedRouters = routerMap.filter(route => {
-    if (hasPermission(roles.permissionList, route)) {
+    if (hasPermission(getPermissionList(roles), route)) {
       if (route.children && route.children.length) {
         route.children = filterAsyncRouter(route.children, roles)
       }
@@ -48,6 +48,22 @@ function filterAsyncRouter (routerMap, roles) {
     return false
   })
   return accessedRouters
+}
+
+/**
+ * 单账号多角色的权限列表
+ * @param roles
+ * @returns []
+ */
+let permissionList = []
+function getPermissionList (roles) {
+    if (permissionList.length > 0) {
+      return permissionList
+    }
+    for (const role of roles) {
+      permissionList = permissionList.concat(role.permissionList)
+    }
+    return permissionList
 }
 
 const permission = {

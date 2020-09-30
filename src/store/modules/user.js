@@ -38,7 +38,7 @@ const user = {
       return new Promise((resolve, reject) => {
         login(userInfo).then(response => {
           const result = response.result
-          storage.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
+          storage.set(ACCESS_TOKEN, result.token, (result.expire_in - new Date().getTime() / 1000) * 1000)
           commit('SET_TOKEN', result.token)
           resolve()
         }).catch(error => {
@@ -52,10 +52,10 @@ const user = {
       return new Promise((resolve, reject) => {
         getInfo().then(response => {
           const result = response.result
-
-          if (result.role && result.role.permissions.length > 0) {
-            const role = result.role
-            role.permissions = result.role.permissions
+          if (result.role && result.role.length > 0) {
+            for (const role of result.role) {
+            // const role = result.role
+            // role.permissions = result.role.permissions
             role.permissions.map(per => {
               if (per.actionEntitySet != null && per.actionEntitySet.length > 0) {
                 const action = per.actionEntitySet.map(action => { return action.action })
@@ -63,6 +63,7 @@ const user = {
               }
             })
             role.permissionList = role.permissions.map(permission => { return permission.permissionId })
+          }
             commit('SET_ROLES', result.role)
             commit('SET_INFO', result)
           } else {
